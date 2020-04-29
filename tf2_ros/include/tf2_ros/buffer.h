@@ -36,6 +36,7 @@
 #include <mutex>
 #include <unordered_map>
 
+#include "tf2/time.h"
 #include <tf2_ros/async_buffer_interface.h>
 #include <tf2_ros/buffer_interface.h>
 #include <tf2_ros/create_timer_interface.h>
@@ -61,6 +62,11 @@ namespace tf2_ros
     using tf2::BufferCore::lookupTransform;
     using tf2::BufferCore::canTransform;
 
+    TF2_ROS_PUBLIC
+    void foo()
+    {
+      tf2::foo();
+    }
     /**
      * @brief  Constructor for a Buffer object
      * @param clock A clock to use for time and sleeping
