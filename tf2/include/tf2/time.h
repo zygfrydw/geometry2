@@ -92,6 +92,9 @@ namespace tf2
   TF2_PUBLIC
   std::string displayTimePoint(const TimePoint& stamp);
 
+  inline void foo()
+  {}
+
 }
 
 #endif // TF2_TIME_H

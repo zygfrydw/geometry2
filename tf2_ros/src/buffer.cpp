@@ -31,6 +31,7 @@
 
 
 #include "tf2_ros/buffer.h"
+#include "tf2/time.h"
 
 #include <exception>
 #include <limits>
@@ -51,6 +52,7 @@ namespace tf2_ros
 Buffer::Buffer(rclcpp::Clock::SharedPtr clock, tf2::Duration cache_time) :
   BufferCore(cache_time), clock_(clock), timer_interface_(nullptr)
 {
+  tf2::foo();
   if (nullptr == clock_)
   {
     throw std::invalid_argument("clock must be a valid instance");
