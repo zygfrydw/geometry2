@@ -27,7 +27,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <memory>
+
 #include <gtest/gtest.h>
+
+#include <rclcpp/rclpp.hpp>
 #include <tf2_ros/static_transform_broadcaster.h>
 
 #include "node_wrapper.hpp"

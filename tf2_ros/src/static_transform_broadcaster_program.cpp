@@ -32,15 +32,10 @@
 #include <string>
 #include <vector>
 
-#include "rclcpp/clock.hpp"
-#include "rclcpp/time_source.hpp"
 #include "rclcpp/rclcpp.hpp"
-#include <tf2/LinearMath/Quaternion.h>
-#include "tf2_ros/static_transform_broadcaster_node.hpp"
-
-#include "builtin_interfaces/msg/time.hpp"
-
 #include "rcutils/logging_macros.h"
+#include "tf2/LinearMath/Quaternion.h"
+#include "tf2_ros/static_transform_broadcaster_node.hpp"
 
 //TODO(clalancette re-enable this)
 // bool validateXmlRpcTf(XmlRpc::XmlRpcValue tf_data) {
