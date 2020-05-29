@@ -37,14 +37,17 @@ add_library(${PROJECT_NAME} SHARED
   src/transform_broadcaster.cpp
   src/static_transform_broadcaster.cpp
 )
+set(dependencies
+  builtin_interfaces
+  geometry_msgs
+  message_filters
+  rclcpp
+  rclcpp_action
+  tf2
+  tf2_msgs
+)
 ament_target_dependencies(${PROJECT_NAME}
-  "builtin_interfaces"
-  "geometry_msgs"
-  "message_filters"
-  "rclcpp"
-  "rclcpp_action"
-  "tf2"
-  "tf2_msgs"
+  ${dependencies}
 )
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE "TF2_ROS_BUILDING_DLL")
@@ -55,7 +58,7 @@ target_link_libraries(buffer_server
   ${PROJECT_NAME}
 )
 ament_target_dependencies(buffer_server
-  "rclcpp"
+  ${dependencies}
 )
 
 add_library(static_transform_broadcaster_node SHARED
@@ -103,8 +106,7 @@ target_link_libraries(tf2_monitor
   ${PROJECT_NAME}
 )
 ament_target_dependencies(tf2_monitor
-  "rclcpp"
-  "tf2_msgs"
+  ${dependencies}
 )
 
 # Install rules
@@ -141,25 +143,19 @@ if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
   ament_add_gtest(test_buffer test/test_buffer.cpp)
   ament_target_dependencies(test_buffer
-    geometry_msgs
-    rclcpp
-    tf2
+    ${dependencies}
   )
   target_link_libraries(test_buffer ${PROJECT_NAME})
 
   ament_add_gtest(test_buffer_server test/test_buffer_server.cpp)
   ament_target_dependencies(test_buffer_server
-    geometry_msgs
-    rclcpp
-    tf2_msgs
+    ${dependencies}
   )
   target_link_libraries(test_buffer_server ${PROJECT_NAME})
 
   ament_add_gtest(test_buffer_client test/test_buffer_client.cpp)
   ament_target_dependencies(test_buffer_client
-    geometry_msgs
-    rclcpp
-    tf2_msgs
+    ${dependencies}
   )
   target_link_libraries(test_buffer_client ${PROJECT_NAME})
 
@@ -167,15 +163,13 @@ if(BUILD_TESTING)
   # multiple target frames and a non-zero time tolerance
   ament_add_gtest(${PROJECT_NAME}_test_message_filter test/message_filter_test.cpp)
   ament_target_dependencies(${PROJECT_NAME}_test_message_filter
-    geometry_msgs
-    message_filters
-    rclcpp
+    ${dependencies}
   )
   target_link_libraries(${PROJECT_NAME}_test_message_filter ${PROJECT_NAME})
 
   ament_add_gtest(${PROJECT_NAME}_test_transform_listener test/test_transform_listener.cpp)
   ament_target_dependencies(${PROJECT_NAME}_test_transform_listener
-    rclcpp
+    ${dependencies}
   )
   target_link_libraries(${PROJECT_NAME}_test_transform_listener ${PROJECT_NAME})
 
@@ -193,8 +187,7 @@ if(BUILD_TESTING)
 
   ament_add_gtest(${PROJECT_NAME}_test_time_reset test/time_reset_test.cpp)
   ament_target_dependencies(${PROJECT_NAME}_test_time_reset
-    geometry_msgs
-    rclcpp
+    ${dependencies}
     rosgraph_msgs
   )
   target_link_libraries(${PROJECT_NAME}_test_time_reset ${PROJECT_NAME})
@@ -226,5 +219,9 @@ endif()
 
 ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME} static_transform_broadcaster_node)
-ament_export_dependencies(builtin_interfaces geometry_msgs message_filters rcl_interfaces rclcpp rclcpp_components rclcpp_action tf2 tf2_msgs)
+ament_export_dependencies(
+  ${dependencies}
+  rcl_interfaces
+  rclcpp_components
+)
 ament_package()
