@@ -32,7 +32,7 @@
 #include <cstring>
 #include <memory>
 
-#include "geometry_msgs/msg/tranform_stamped.hpp"
+#include "geometry_msgs/msg/transform_stamped.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "tf2/exceptions.h"
 #include "tf2_ros/transform_listener.h"
