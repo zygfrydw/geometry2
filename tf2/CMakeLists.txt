@@ -82,6 +82,12 @@ if(BUILD_TESTING)
     target_link_libraries(test_time tf2)
   endif()
 
+  ament_add_gtest(test_utils test/test_utils.cpp)
+  if(TARGET test_utils)
+    target_link_libraries(test_utils tf2)
+  endif()
+
+
 # TODO(tfoote) reimplement speed test without dependency on message datatypes.
 # add_executable(speed_test EXCLUDE_FROM_ALL test/speed_test.cpp)
 # target_link_libraries(speed_test tf2  ${geometry_msgs_LIBRARIES} ${console_bridge_LIBRARIES})
