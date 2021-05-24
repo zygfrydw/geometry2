@@ -15,10 +15,10 @@
 #ifndef TF2__UTILS_H_
 #define TF2__UTILS_H_
 
+#include <tf2/convert.h>
 #include <tf2/LinearMath/Transform.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/impl/utils.h>
-#include <tf2/visibility_control.h>
 
 namespace tf2
 {
