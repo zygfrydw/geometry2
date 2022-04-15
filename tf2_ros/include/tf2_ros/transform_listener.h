@@ -79,11 +79,14 @@ get_default_transform_listener_static_sub_options()
 }
 }  // namespace detail
 
+
 /** \brief This class provides an easy way to request and receive coordinate frame transform information.
  */
 class TransformListener
 {
 public:
+  using ThreadFactory = std::function<std::thread*(std::function<void()>)>;
+
   /**@brief Constructor for transform listener */
   TF2_ROS_PUBLIC
   explicit TransformListener(tf2::BufferCore & buffer, bool spin_thread = true);
@@ -98,10 +101,11 @@ public:
     const rclcpp::SubscriptionOptionsWithAllocator<AllocatorT> & options =
     detail::get_default_transform_listener_sub_options<AllocatorT>(),
     const rclcpp::SubscriptionOptionsWithAllocator<AllocatorT> & static_options =
-    detail::get_default_transform_listener_static_sub_options<AllocatorT>())
+    detail::get_default_transform_listener_static_sub_options<AllocatorT>(),
+    ThreadFactory thread_factory = {})
   : buffer_(buffer)
   {
-    init(node, spin_thread, qos, static_qos, options, static_options);
+    init(node, spin_thread, qos, static_qos, options, static_options, std::move(thread_factory));
     node_logging_interface_ = node->get_node_logging_interface();
   }
 
@@ -116,7 +120,8 @@ private:
     const rclcpp::QoS & qos,
     const rclcpp::QoS & static_qos,
     const rclcpp::SubscriptionOptionsWithAllocator<AllocatorT> & options,
-    const rclcpp::SubscriptionOptionsWithAllocator<AllocatorT> & static_options)
+    const rclcpp::SubscriptionOptionsWithAllocator<AllocatorT> & static_options,
+    ThreadFactory thread_factory)
   {
     node_logging_interface_ = node->get_node_logging_interface();
 
@@ -140,13 +145,17 @@ private:
       static_options);
 
     if (spin_thread) {
-      initThread(node->get_node_base_interface());
+      if(!thread_factory){
+        thread_factory = [](std::function<void()> thread_fun){ return new std::thread(std::move(thread_fun));};
+      }
+      initThread(node->get_node_base_interface(), std::move(thread_factory));
     }
   }
 
   TF2_ROS_PUBLIC
   void initThread(
-    rclcpp::node_interfaces::NodeBaseInterface::SharedPtr node_base_interface);
+    rclcpp::node_interfaces::NodeBaseInterface::SharedPtr node_base_interface,
+    ThreadFactory thread_factory);
 
   /// Callback function for ros message subscriptoin
   TF2_ROS_PUBLIC

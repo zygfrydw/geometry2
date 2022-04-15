@@ -31,16 +31,20 @@
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
 
+#include <chrono>
+#include <functional>
+#include <future>
 #include <memory>
+#include <thread>
 
 #include "node_wrapper.hpp"
 
 class CustomNode : public rclcpp::Node
 {
 public:
-  CustomNode()
-  : rclcpp::Node("tf2_ros_test_transform_listener_node")
-  {}
+  CustomNode() : rclcpp::Node("tf2_ros_test_transform_listener_node")
+  {
+  }
 
   void init_tf_listener()
   {
@@ -81,11 +85,48 @@ TEST(tf2_test_transform_listener, transform_listener_should_destroy_correctly)
 {
   rclcpp::Clock::SharedPtr clock = std::make_shared<rclcpp::Clock>(RCL_SYSTEM_TIME);
   tf2_ros::Buffer buffer(clock);
-  tf2_ros::TransformListener tfl(buffer, true);
-  (void) tfl;
+  std::promise<void> promise;
+
+  std::stringstream sstream;
+  sstream << "transform_listener_impl_" << std::hex << reinterpret_cast<size_t>(this);
+  rclcpp::NodeOptions options;
+  // but specify its name in .arguments to override any __node passed on the command line
+  options.arguments({ "--ros-args", "-r", "__node:=" + std::string(sstream.str()) });
+  options.start_parameter_event_publisher(false);
+  options.start_parameter_services(false);
+  auto node = rclcpp::Node::make_shared("_", options);
+
+  
+  auto tfl = std::make_shared<tf2_ros::TransformListener>(
+      buffer, std::move(node), true, tf2_ros::DynamicListenerQoS(), tf2_ros::StaticListenerQoS(),
+      tf2_ros::detail::get_default_transform_listener_sub_options<std::allocator<void>>(),
+      tf2_ros::detail::get_default_transform_listener_static_sub_options<std::allocator<void>>(),
+       tf2_ros::TransformListener::ThreadFactory([future = std::shared_future(promise.get_future())](std::function<void()> fun) {
+        return new std::thread([inner_future = std::move(future), inner_fun = std::move(fun)]() {
+          inner_future.wait();
+          inner_fun();
+        });
+      }
+  ));
+
+  auto tfl_future = std::async(std::launch::async, [](std::shared_ptr<tf2_ros::TransformListener> pointer){
+    pointer.reset(); // call destructor, it should not block
+  }, std::move(tfl));
+
+  // This timeout is not perfect but otherwise we would need to inject the signalling to dedicated thread destructor
+  auto status = tfl_future.wait_for(std::chrono::milliseconds(100));
+  ASSERT_EQ(status, std::future_status::timeout);
+
+  // This ensures that the tf2_ros::TransformListener destructor has been called before the
+  // dedicated thread was able to run. The next line allows the inner thread to run
+  promise.set_value();
+
+  status = tfl_future.wait_for(std::chrono::milliseconds(100));
+  ASSERT_EQ(status, std::future_status::ready);
+
 }
 
-int main(int argc, char ** argv)
+int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
   rclcpp::init(argc, argv);
